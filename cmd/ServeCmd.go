@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"fmt"
 	"github.com/spf13/viper"
+	"github.com/s4kibs4mi/emq-am/api"
 )
 
 var ServeCmd = cobra.Command{
@@ -17,7 +18,8 @@ var ServeCmd = cobra.Command{
 func ServeCmdExecute(command *cobra.Command, args []string) {
 	router := mux.NewRouter()
 	v1 := router.PathPrefix("/api/v1").Subrouter()
+	v1.HandleFunc("/users", api.AppAuth(api.CreateUser)).Methods("POST")
 
-	fmt.Println("Running on [", viper.GetString("app.address"), "]!")
+	fmt.Printf("Running on [%s]!", viper.GetString("app.address"))
 	http.ListenAndServe(viper.GetString("app.address"), v1)
 }

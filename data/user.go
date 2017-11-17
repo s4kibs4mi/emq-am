@@ -1,5 +1,11 @@
 package data
 
+import (
+	"github.com/s4kibs4mi/emq-am/net"
+	"gopkg.in/mgo.v2/bson"
+	"time"
+)
+
 const (
 	UserTypeAdmin   = "admin"
 	UserTypeMember  = "member"
@@ -7,19 +13,35 @@ const (
 )
 
 type User struct {
-	UserName        string   `json:"user_name"`
-	Password        string   `json:"password"`
-	Email           string   `json:"email"`
-	PublishTopics   []string `json:"publish_topics"`
-	SubscribeTopics []string `json:"subscribe_topics"`
-	Type            string   `json:"type"`
+	Id              bson.ObjectId `bson:"_id,omitempty",json:"id"`
+	UserName        string        `json:"user_name,omitempty"`
+	Password        string        `json:"password,omitempty"`
+	Email           string        `json:"email,omitempty"`
+	PublishTopics   []string      `json:"publish_topics,omitempty"`
+	SubscribeTopics []string      `json:"subscribe_topics,omitempty"`
+	Type            string        `json:"type,omitempty"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
 }
 
 func (u *User) Save() bool {
-	return false
+	u.CreatedAt = time.Now()
+	u.UpdatedAt = time.Now()
+	err := net.GetUserCollection().Insert(u)
+	if err != nil {
+		return false
+	}
+	return u.Find()
 }
 
 func (u *User) Find() bool {
+	result := net.GetUserCollection().Find(bson.M{
+		"username": u.UserName,
+	})
+	err := result.One(u)
+	if err == nil {
+		return true
+	}
 	return false
 }
 
@@ -28,7 +50,12 @@ func (u *User) Delete() bool {
 }
 
 func (u *User) Count() int {
-	return 0
+	result := net.GetUserCollection().Find(bson.M{})
+	n, err := result.Count()
+	if err == nil {
+		return n
+	}
+	return -1
 }
 
 func (u *User) ChangePassword() bool {
@@ -40,10 +67,24 @@ func (u *User) ChangeUserAccessLevel() bool {
 }
 
 func (u *User) IsUserNameAvailable() bool {
+	result := net.GetUserCollection().Find(bson.M{
+		"username": u.UserName,
+	})
+	n, err := result.Count()
+	if err == nil && n == 0 {
+		return true
+	}
 	return false
 }
 
 func (u *User) IsEmailAvailable() bool {
+	result := net.GetUserCollection().Find(bson.M{
+		"email": u.Email,
+	})
+	n, err := result.Count()
+	if err == nil && n == 0 {
+		return true
+	}
 	return false
 }
 
