@@ -1,0 +1,18 @@
+{
+  "app": {
+    "address": ":8080"
+  },
+  "databases": {
+    "mongodb": {
+      "uri": "mongodb://cloud.sakib.ninja:27717",
+      "name": "emqam",
+      "auth_collection": "emqauth",
+      "acl_collection": "emqacl"
+    }
+  },
+  "security": {
+    "registration_enabled": true,
+    "key": "hello",
+    "secret": "12345"
+  }
+}
