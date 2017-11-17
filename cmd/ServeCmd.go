@@ -19,6 +19,7 @@ func ServeCmdExecute(command *cobra.Command, args []string) {
 	router := mux.NewRouter()
 	v1 := router.PathPrefix("/api/v1").Subrouter()
 	v1.HandleFunc("/users", api.AppAuth(api.CreateUser)).Methods("POST")
+	v1.HandleFunc("/auth", api.CheckLogin).Methods("POST")
 
 	fmt.Printf("Running on [%s]!", viper.GetString("app.address"))
 	http.ListenAndServe(viper.GetString("app.address"), v1)

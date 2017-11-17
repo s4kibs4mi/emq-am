@@ -4,6 +4,7 @@ import (
 	"github.com/s4kibs4mi/emq-am/net"
 	"gopkg.in/mgo.v2/bson"
 	"time"
+	"github.com/s4kibs4mi/emq-am/utils"
 )
 
 const (
@@ -89,6 +90,14 @@ func (u *User) IsEmailAvailable() bool {
 }
 
 func (u *User) HasValidCredentials() bool {
+	user := &User{}
+	result := net.GetUserCollection().Find(bson.M{
+		"username": u.UserName,
+	})
+	err := result.One(user)
+	if err == nil {
+		return utils.IsPasswordMatched(u.Password, user.Password)
+	}
 	return false
 }
 

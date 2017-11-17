@@ -71,3 +71,25 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}, http.StatusOK)
 	return
 }
+
+func CheckLogin(w http.ResponseWriter, r *http.Request) {
+	user := &data.User{}
+	parseErr := ParseFromStringBody(r, user)
+	if parseErr != nil {
+		ServeJSON(w, APIResponse{
+			Code:   http.StatusBadRequest,
+			Errors: parseErr,
+			Data:   user,
+		}, http.StatusBadRequest)
+		return
+	}
+	if user.HasValidCredentials() {
+		ServeJSON(w, APIResponse{
+			Code: http.StatusOK,
+		}, http.StatusOK)
+		return
+	}
+	ServeJSON(w, APIResponse{
+		Code: http.StatusUnauthorized,
+	}, http.StatusUnauthorized)
+}

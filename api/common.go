@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"github.com/spf13/viper"
 	"encoding/json"
+	"io/ioutil"
+	"strings"
+	"github.com/s4kibs4mi/emq-am/data"
 )
 
 const (
@@ -28,6 +31,23 @@ func ParseResponse(r *http.Request, v interface{}) error {
 	err := json.NewDecoder(r.Body).Decode(v)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func ParseFromStringBody(r *http.Request, u *data.User) error {
+	data, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return readErr
+	}
+	kv := strings.Split(string(data), "&")
+	for _, pair := range kv {
+		v := strings.Split(pair, "=")
+		if v[0] == "username" {
+			u.UserName = v[1]
+		} else if v[0] == "password" {
+			u.Password = v[1]
+		}
 	}
 	return nil
 }
