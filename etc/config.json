@@ -7,11 +7,12 @@
       "uri": "mongodb://cloud.sakib.ninja:27717",
       "name": "emqam",
       "auth_collection": "emqauth",
-      "acl_collection": "emqacl"
+      "acl_collection": "emqacl",
+      "session_collection": "sessions"
     }
   },
   "security": {
-    "registration_enabled": true,
+    "registration_enabled": false,
     "key": "hello",
     "secret": "12345"
   }

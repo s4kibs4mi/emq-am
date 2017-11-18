@@ -5,9 +5,20 @@ import (
 	"github.com/s4kibs4mi/emq-am/data"
 	"github.com/s4kibs4mi/emq-am/utils"
 	"gopkg.in/asaskevich/govalidator.v4"
+	"github.com/spf13/viper"
+	"github.com/satori/go.uuid"
+	"time"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
+	isRegistrationEnabled := viper.GetBool("security.registration_enabled")
+	if !isRegistrationEnabled {
+		ServeJSON(w, APIResponse{
+			Code:    http.StatusServiceUnavailable,
+			Details: "User registration disabled",
+		}, http.StatusServiceUnavailable)
+		return
+	}
 	user := &data.User{}
 	parseErr := ParseResponse(r, user)
 	if parseErr != nil {
@@ -79,7 +90,6 @@ func CheckLogin(w http.ResponseWriter, r *http.Request) {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
 			Errors: parseErr,
-			Data:   user,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -87,6 +97,42 @@ func CheckLogin(w http.ResponseWriter, r *http.Request) {
 		ServeJSON(w, APIResponse{
 			Code: http.StatusOK,
 		}, http.StatusOK)
+		return
+	}
+	ServeJSON(w, APIResponse{
+		Code: http.StatusUnauthorized,
+	}, http.StatusUnauthorized)
+}
+
+func CreateSession(w http.ResponseWriter, r *http.Request) {
+	user := &data.User{}
+	parseErr := ParseResponse(r, user)
+	if parseErr != nil {
+		ServeJSON(w, APIResponse{
+			Code:   http.StatusBadRequest,
+			Errors: parseErr,
+		}, http.StatusBadRequest)
+		return
+	}
+	if user.HasValidCredentials() {
+		session := &data.Session{
+			UserId:       user.Id,
+			AccessToken:  uuid.NewV4().String(),
+			RefreshToken: uuid.NewV4().String(),
+			CreatedAt:    time.Now(),
+			ExpireAt:     time.Now().Add(time.Hour * 24),
+		}
+		if session.Save() {
+			ServeJSON(w, APIResponse{
+				Code: http.StatusOK,
+				Data: session,
+			}, http.StatusOK)
+			return
+		}
+		ServeJSON(w, APIResponse{
+			Code:    http.StatusInternalServerError,
+			Details: "Couldn't generate session",
+		}, http.StatusInternalServerError)
 		return
 	}
 	ServeJSON(w, APIResponse{

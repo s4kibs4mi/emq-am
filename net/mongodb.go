@@ -21,7 +21,7 @@ var mConnectError error
 func NewMongoDBConnection() {
 	mSession, mConnectError = mgo.Dial(viper.GetString("databases.mongodb.uri"))
 	if mConnectError != nil {
-		fmt.Printf("Couldn't connect to database [ %s/%s ]", viper.GetString("databases.mongodb.uri"),
+		fmt.Printf("Couldn't connect to database [ %s/%s ]\n", viper.GetString("databases.mongodb.uri"),
 			viper.GetString("databases.mongodb.name"))
 		os.Exit(-1)
 	}
@@ -33,5 +33,9 @@ func GetMongoDB() *mgo.Database {
 }
 
 func GetUserCollection() *mgo.Collection {
+	return GetMongoDB().C(viper.GetString("databases.mongodb.auth_collection"))
+}
+
+func GetSessionCollection() *mgo.Collection {
 	return GetMongoDB().C(viper.GetString("databases.mongodb.auth_collection"))
 }

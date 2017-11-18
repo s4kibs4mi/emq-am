@@ -20,7 +20,13 @@ func ServeCmdExecute(command *cobra.Command, args []string) {
 	v1 := router.PathPrefix("/api/v1").Subrouter()
 	v1.HandleFunc("/users", api.AppAuth(api.CreateUser)).Methods("POST")
 	v1.HandleFunc("/auth", api.CheckLogin).Methods("POST")
+	v1.HandleFunc("/acl", api.HasBroadcastPermission).Methods("POST")
+	v1.HandleFunc("/publish", api.MemberAuth(api.CreatePublishTopic)).Methods("POST")
+	v1.HandleFunc("/publish", api.HasBroadcastPermission).Methods("DELETE")
+	v1.HandleFunc("/subscribe", api.HasBroadcastPermission).Methods("POST")
+	v1.HandleFunc("/subscribe", api.HasBroadcastPermission).Methods("DELETE")
+	v1.HandleFunc("/session", api.CreateSession).Methods("POST")
 
-	fmt.Printf("Running on [%s]!", viper.GetString("app.address"))
+	fmt.Printf("Running on [%s]!\n", viper.GetString("app.address"))
 	http.ListenAndServe(viper.GetString("app.address"), v1)
 }

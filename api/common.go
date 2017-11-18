@@ -7,11 +7,14 @@ import (
 	"io/ioutil"
 	"strings"
 	"github.com/s4kibs4mi/emq-am/data"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
-	AppKey    = "app_key"
-	AppSecret = "app_secret"
+	AppKey      = "app_key"
+	AppSecret   = "app_secret"
+	AccessToken = "access_token"
+	UserId      = "user_id"
 )
 
 type APIResponse struct {
@@ -52,6 +55,25 @@ func ParseFromStringBody(r *http.Request, u *data.User) error {
 	return nil
 }
 
+func ParseACLParams(r *http.Request, params *data.ACLParams) error {
+	data, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		return readErr
+	}
+	kv := strings.Split(string(data), "&")
+	for _, pair := range kv {
+		v := strings.Split(pair, "=")
+		if v[0] == "username" {
+			params.UserName = v[1]
+		} else if v[0] == "access" {
+			params.Access = v[1]
+		} else if v[0] == "topic" {
+			params.Topic = v[1]
+		}
+	}
+	return nil
+}
+
 func AppAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appKey := viper.GetString("security.key")
@@ -77,12 +99,60 @@ func DefaultAuth(h http.HandlerFunc) http.HandlerFunc {
 
 func MemberAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		userId := r.Header.Get(UserId)
+		accessToken := r.Header.Get(AccessToken)
+		if userId == "" || accessToken == "" || !bson.IsObjectIdHex(userId) {
+			ServeJSON(w, APIResponse{
+				Code: http.StatusUnauthorized,
+			}, http.StatusUnauthorized)
+			return
+		}
+		session := data.Session{
+			UserId:      bson.ObjectIdHex(userId),
+			AccessToken: accessToken,
+		}
+		if !session.Find() {
+			ServeJSON(w, APIResponse{
+				Code: http.StatusUnauthorized,
+			}, http.StatusUnauthorized)
+			return
+		}
+		user := data.User{}
+		user.Id = session.UserId
+		if user.FindById() && user.IsMember() {
+			h.ServeHTTP(w, r)
+			return
+		}
+		ServeJSON(w, APIResponse{
+			Code: http.StatusUnauthorized,
+		}, http.StatusUnauthorized)
+		return
 	}
 }
 
 func AdminAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		userId := r.Header.Get(UserId)
+		accessToken := r.Header.Get(AccessToken)
+		session := data.Session{
+			UserId:      bson.ObjectIdHex(userId),
+			AccessToken: accessToken,
+		}
+		if !session.Find() {
+			ServeJSON(w, APIResponse{
+				Code: http.StatusUnauthorized,
+			}, http.StatusUnauthorized)
+			return
+		}
+		user := data.User{}
+		user.Id = session.UserId
+		if user.FindById() && user.IsAdmin() {
+			h.ServeHTTP(w, r)
+			return
+		}
+		ServeJSON(w, APIResponse{
+			Code: http.StatusUnauthorized,
+		}, http.StatusUnauthorized)
+		return
 	}
 }
