@@ -103,8 +103,8 @@ func MemberAuth(h http.HandlerFunc) http.HandlerFunc {
 		accessToken := r.Header.Get(AccessToken)
 		if userId == "" || accessToken == "" || !bson.IsObjectIdHex(userId) {
 			ServeJSON(w, APIResponse{
-				Code: http.StatusUnauthorized,
-			}, http.StatusUnauthorized)
+				Code: http.StatusBadRequest,
+			}, http.StatusBadRequest)
 			return
 		}
 		session := data.Session{
@@ -119,14 +119,13 @@ func MemberAuth(h http.HandlerFunc) http.HandlerFunc {
 		}
 		user := data.User{}
 		user.Id = session.UserId
-		if user.FindById() && user.IsMember() {
+		if user.FindById() && (user.IsMember() || user.IsAdmin()) {
 			h.ServeHTTP(w, r)
 			return
 		}
 		ServeJSON(w, APIResponse{
-			Code: http.StatusUnauthorized,
-		}, http.StatusUnauthorized)
-		return
+			Code: http.StatusForbidden,
+		}, http.StatusForbidden)
 	}
 }
 
@@ -134,6 +133,12 @@ func AdminAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Header.Get(UserId)
 		accessToken := r.Header.Get(AccessToken)
+		if userId == "" || accessToken == "" || !bson.IsObjectIdHex(userId) {
+			ServeJSON(w, APIResponse{
+				Code: http.StatusBadRequest,
+			}, http.StatusBadRequest)
+			return
+		}
 		session := data.Session{
 			UserId:      bson.ObjectIdHex(userId),
 			AccessToken: accessToken,
@@ -151,8 +156,8 @@ func AdminAuth(h http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		ServeJSON(w, APIResponse{
-			Code: http.StatusUnauthorized,
-		}, http.StatusUnauthorized)
+			Code: http.StatusForbidden,
+		}, http.StatusForbidden)
 		return
 	}
 }

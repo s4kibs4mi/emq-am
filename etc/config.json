@@ -12,7 +12,7 @@
     }
   },
   "security": {
-    "registration_enabled": false,
+    "registration_enabled": true,
     "key": "hello",
     "secret": "12345"
   }

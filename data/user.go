@@ -27,7 +27,7 @@ type ACLParams struct {
 }
 
 type User struct {
-	Id              bson.ObjectId `bson:"_id,omitempty",json:"id"`
+	Id              bson.ObjectId `json:"id"`
 	UserName        string        `json:"user_name,omitempty"`
 	Password        string        `json:"password,omitempty"`
 	Email           string        `json:"email,omitempty"`
@@ -60,14 +60,11 @@ func (u *User) Find() bool {
 }
 
 func (u *User) FindById() bool {
-	result := net.GetUserCollection().FindId(bson.M{
-		"_id": u.Id,
+	result := net.GetUserCollection().Find(bson.M{
+		"id": u.Id,
 	})
 	err := result.One(u)
-	if err == nil {
-		return true
-	}
-	return false
+	return err == nil
 }
 
 func (u *User) Delete() bool {
@@ -163,21 +160,28 @@ func (u *User) HasPublishPermission(topic string) bool {
 		fmt.Println("true")
 		return true
 	}
-	fmt.Println("false")
 	return false
 }
 
-func (u *User) HasSubscribePermission(topics string) bool {
+func (u *User) HasSubscribePermission(topic string) bool {
+
 	return true
 }
 
-func (u *User) AppendPublishPermission(topics string) bool {
-
-	return false
+func (u *User) AppendPublishPermission(topic string) bool {
+	u.PublishTopics = append(u.PublishTopics, topic)
+	err := net.GetUserCollection().Update(bson.M{
+		"id": u.Id,
+	}, u)
+	return err == nil
 }
 
-func (u *User) AppendSubscribePermission(topics string) bool {
-	return false
+func (u *User) AppendSubscribePermission(topic string) bool {
+	u.SubscribeTopics = append(u.SubscribeTopics, topic)
+	err := net.GetUserCollection().Update(bson.M{
+		"id": u.Id,
+	}, u)
+	return err == nil
 }
 
 func (u *User) DiscardPublishPermission(topics string) bool {

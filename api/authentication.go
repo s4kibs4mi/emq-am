@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/satori/go.uuid"
 	"time"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +68,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		user.Type = data.UserTypeDefault
 	}
 	user.Password = utils.MakePassword(user.Password)
+	user.Id = bson.NewObjectId()
 	if user.Password == "" || !user.Save() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusInternalServerError,
@@ -116,6 +118,7 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 	}
 	if user.HasValidCredentials() {
 		session := &data.Session{
+			Id:           bson.NewObjectId(),
 			UserId:       user.Id,
 			AccessToken:  uuid.NewV4().String(),
 			RefreshToken: uuid.NewV4().String(),

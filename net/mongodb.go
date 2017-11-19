@@ -25,6 +25,7 @@ func NewMongoDBConnection() {
 			viper.GetString("databases.mongodb.name"))
 		os.Exit(-1)
 	}
+	mSession.SetMode(mgo.Monotonic, true)
 	mDatabase = mSession.DB(viper.GetString("databases.mongodb.name"))
 }
 
@@ -37,5 +38,5 @@ func GetUserCollection() *mgo.Collection {
 }
 
 func GetSessionCollection() *mgo.Collection {
-	return GetMongoDB().C(viper.GetString("databases.mongodb.auth_collection"))
+	return GetMongoDB().C(viper.GetString("databases.mongodb.session_collection"))
 }

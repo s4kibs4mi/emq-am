@@ -14,7 +14,7 @@ import (
  */
 
 type Session struct {
-	Id           bson.ObjectId `bson:"_id",json:"id",omitempty`
+	Id           bson.ObjectId `json:"-"`
 	UserId       bson.ObjectId `json:"user_id"`
 	AccessToken  string        `json:"access_token"`
 	RefreshToken string        `json:"refresh_token"`
@@ -24,7 +24,6 @@ type Session struct {
 
 func (s *Session) Save() bool {
 	err := net.GetSessionCollection().Insert(s)
-	s.Find()
 	return err == nil
 }
 
