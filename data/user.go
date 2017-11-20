@@ -15,6 +15,11 @@ const (
 )
 
 const (
+	UserStatusBanned   = "banned"
+	UserStatusUnbanned = "unbanned"
+)
+
+const (
 	MQTopicDirectionSubscribe = "1"
 	MQTopicDirectionPublish   = "2"
 )
@@ -40,6 +45,7 @@ type User struct {
 	PublishTopics   []string      `json:"publish_topics,omitempty"`
 	SubscribeTopics []string      `json:"subscribe_topics,omitempty"`
 	Type            string        `json:"type,omitempty"`
+	Status          string        `json:"status"`
 	CreatedAt       time.Time     `json:"created_at"`
 	UpdatedAt       time.Time     `json:"updated_at"`
 }

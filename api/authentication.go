@@ -74,6 +74,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.Id = bson.NewObjectId()
 	user.Password = userRequest.Password
 	user.Type = userRequest.Type
+	user.Status = data.UserStatusUnbanned
 	if user.Password == "" || !user.Save() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusInternalServerError,
@@ -99,15 +100,21 @@ func CheckLogin(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	if user.HasValidCredentials() {
+	if !user.HasValidCredentials() {
 		ServeJSON(w, APIResponse{
-			Code: http.StatusOK,
-		}, http.StatusOK)
-		return
+			Code: http.StatusUnauthorized,
+		}, http.StatusUnauthorized)
+	}
+	if user.Status == data.UserStatusBanned {
+		ServeJSON(w, APIResponse{
+			Code:    http.StatusForbidden,
+			Details: "User status banned",
+		}, http.StatusForbidden)
 	}
 	ServeJSON(w, APIResponse{
-		Code: http.StatusUnauthorized,
-	}, http.StatusUnauthorized)
+		Code: http.StatusOK,
+	}, http.StatusOK)
+	return
 }
 
 func CreateSession(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +128,13 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.HasValidCredentials() {
+		if user.Status == data.UserStatusBanned {
+			ServeJSON(w, APIResponse{
+				Code:    http.StatusForbidden,
+				Details: "User status banned",
+			}, http.StatusForbidden)
+			return
+		}
 		session := &data.Session{
 			Id:           bson.NewObjectId(),
 			UserId:       user.Id,
