@@ -93,7 +93,27 @@ func AppAuth(h http.HandlerFunc) http.HandlerFunc {
 
 func DefaultAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		userId := r.Header.Get(UserId)
+		accessToken := r.Header.Get(AccessToken)
+		if userId == "" || accessToken == "" || !bson.IsObjectIdHex(userId) {
+			ServeJSON(w, APIResponse{
+				Code: http.StatusBadRequest,
+			}, http.StatusBadRequest)
+			return
+		}
+		session := data.Session{
+			UserId:      bson.ObjectIdHex(userId),
+			AccessToken: accessToken,
+		}
+		if !session.Find() {
+			ServeJSON(w, APIResponse{
+				Code: http.StatusUnauthorized,
+			}, http.StatusUnauthorized)
+			return
+		}
+		ServeJSON(w, APIResponse{
+			Code: http.StatusForbidden,
+		}, http.StatusForbidden)
 	}
 }
 
