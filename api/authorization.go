@@ -65,6 +65,7 @@ func CreatePublishTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.AppendPublishPermission(params.Topic) {
+		user.Password = ""
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusOK,
 			Data:    user,
@@ -75,5 +76,47 @@ func CreatePublishTopic(w http.ResponseWriter, r *http.Request) {
 	ServeJSON(w, APIResponse{
 		Code:    http.StatusInternalServerError,
 		Details: "Couldn't update publish topics",
+	}, http.StatusInternalServerError)
+}
+
+func CreateSubscribeTopic(w http.ResponseWriter, r *http.Request) {
+	userId := r.Header.Get(UserId)
+	params := &data.ACLParams{}
+	parseErr := ParseResponse(r, params)
+	if parseErr != nil || params.Topic == "" {
+		ServeJSON(w, APIResponse{
+			Code:   http.StatusBadRequest,
+			Errors: parseErr,
+		}, http.StatusBadRequest)
+		return
+	}
+	user := data.User{}
+	user.Id = bson.ObjectIdHex(userId)
+	if !user.FindById() {
+		ServeJSON(w, APIResponse{
+			Code:    http.StatusNotFound,
+			Details: "User not found",
+		}, http.StatusNotFound)
+		return
+	}
+	if utils.IsItemExists(user.SubscribeTopics, params.Topic) {
+		ServeJSON(w, APIResponse{
+			Code:    http.StatusUnprocessableEntity,
+			Details: "Topic already exists",
+		}, http.StatusUnprocessableEntity)
+		return
+	}
+	if user.AppendSubscribePermission(params.Topic) {
+		user.Password = ""
+		ServeJSON(w, APIResponse{
+			Code:    http.StatusOK,
+			Data:    user,
+			Details: "Subscribe topics updated",
+		}, http.StatusOK)
+		return
+	}
+	ServeJSON(w, APIResponse{
+		Code:    http.StatusInternalServerError,
+		Details: "Couldn't update subscribe topics",
 	}, http.StatusInternalServerError)
 }

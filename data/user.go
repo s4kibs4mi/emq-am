@@ -5,7 +5,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
 	"github.com/s4kibs4mi/emq-am/utils"
-	"fmt"
 )
 
 const (
@@ -19,7 +18,6 @@ const (
 	MQTopicDirectionPublish   = "2"
 )
 
-//access= %A, username = %u, clientid= %c, ipaddr = %a, topic = %t
 type ACLParams struct {
 	Access   string
 	UserName string
@@ -156,16 +154,19 @@ func (u *User) HasPublishPermission(topic string) bool {
 		"publishtopics": topic,
 	})
 	n, err := result.Count()
-	if err == nil && n == 1 {
-		fmt.Println("true")
-		return true
-	}
-	return false
+	return err == nil && n == 1
 }
 
 func (u *User) HasSubscribePermission(topic string) bool {
-
-	return true
+	if u.IsAdmin() {
+		return true
+	}
+	result := net.GetUserCollection().Find(bson.M{
+		"username":        u.UserName,
+		"subscribetopics": topic,
+	})
+	n, err := result.Count()
+	return err == nil && n == 1
 }
 
 func (u *User) AppendPublishPermission(topic string) bool {
