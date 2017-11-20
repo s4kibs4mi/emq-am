@@ -20,8 +20,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusServiceUnavailable)
 		return
 	}
-	user := &data.User{}
-	parseErr := ParseResponse(r, user)
+	userRequest := &data.UserRequest{}
+	parseErr := ParseResponse(r, userRequest)
 	if parseErr != nil {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusBadRequest,
@@ -30,15 +30,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var validationErr []string
-	userNameLen := len(user.UserName)
+	userNameLen := len(userRequest.UserName)
 	if userNameLen < 3 || userNameLen > 1000 {
 		validationErr = append(validationErr, "user_name must be between 3 to 1000")
 	}
-	passwordLen := len(user.Password)
+	passwordLen := len(userRequest.Password)
 	if passwordLen < 8 || passwordLen > 100 {
 		validationErr = append(validationErr, "password must be between 8 to 100")
 	}
-	if !govalidator.IsEmail(user.Email) {
+	if !govalidator.IsEmail(userRequest.Email) {
 		validationErr = append(validationErr, "email must be a valid email address")
 	}
 	if len(validationErr) > 0 {
@@ -48,6 +48,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusUnprocessableEntity)
 		return
 	}
+	user := data.User{}
+	user.Email = userRequest.Email
 	if !user.IsEmailAvailable() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusUnprocessableEntity,
@@ -55,6 +57,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusUnprocessableEntity)
 		return
 	}
+	user.UserName = userRequest.UserName
 	if !user.IsUserNameAvailable() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusUnprocessableEntity,
@@ -63,12 +66,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.Count() == 0 {
-		user.Type = data.UserTypeAdmin
+		userRequest.Type = data.UserTypeAdmin
 	} else {
-		user.Type = data.UserTypeDefault
+		userRequest.Type = data.UserTypeDefault
 	}
-	user.Password = utils.MakePassword(user.Password)
+	userRequest.Password = utils.MakePassword(userRequest.Password)
 	user.Id = bson.NewObjectId()
+	user.Password = userRequest.Password
+	user.Type = userRequest.Type
 	if user.Password == "" || !user.Save() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusInternalServerError,
@@ -76,7 +81,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	user.Password = ""
 	ServeJSON(w, APIResponse{
 		Code:    http.StatusOK,
 		Details: "User successfully created",

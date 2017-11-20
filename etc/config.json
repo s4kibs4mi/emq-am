@@ -15,5 +15,8 @@
     "registration_enabled": true,
     "key": "hello",
     "secret": "12345"
+  },
+  "pagination": {
+    "per_page": 20
   }
 }

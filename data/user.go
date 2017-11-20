@@ -5,6 +5,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
 	"github.com/s4kibs4mi/emq-am/utils"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -24,10 +25,17 @@ type ACLParams struct {
 	Topic    string `json:"topic"`
 }
 
+type UserRequest struct {
+	UserName string `json:"user_name,omitempty"`
+	Password string `json:"password,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Type     string `json:"type,omitempty"`
+}
+
 type User struct {
 	Id              bson.ObjectId `json:"id"`
 	UserName        string        `json:"user_name,omitempty"`
-	Password        string        `json:"password,omitempty"`
+	Password        string        `json:"-"`
 	Email           string        `json:"email,omitempty"`
 	PublishTopics   []string      `json:"publish_topics,omitempty"`
 	SubscribeTopics []string      `json:"subscribe_topics,omitempty"`
@@ -191,4 +199,12 @@ func (u *User) DiscardPublishPermission(topics string) bool {
 
 func (u *User) DiscardSubscribePermission(topics string) bool {
 	return false
+}
+
+func (u *User) GetUserList(page int) []User {
+	users := []User{}
+	perPage := viper.GetInt("pagination.per_page")
+	result := net.GetUserCollection().Find(bson.M{}).Limit(perPage).Skip(perPage * page)
+	result.All(&users)
+	return users
 }

@@ -19,6 +19,7 @@ func ServeCmdExecute(command *cobra.Command, args []string) {
 	router := mux.NewRouter()
 	v1 := router.PathPrefix("/api/v1").Subrouter()
 	v1.HandleFunc("/users", api.AppAuth(api.CreateUser)).Methods("POST")
+	v1.HandleFunc("/users", api.AdminAuth(api.ListUsers)).Methods("GET")
 	v1.HandleFunc("/auth", api.CheckLogin).Methods("POST")
 	v1.HandleFunc("/acl", api.HasBroadcastPermission).Methods("POST")
 	v1.HandleFunc("/publish", api.MemberAuth(api.CreatePublishTopic)).Methods("POST")

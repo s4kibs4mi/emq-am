@@ -65,7 +65,6 @@ func CreatePublishTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.AppendPublishPermission(params.Topic) {
-		user.Password = ""
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusOK,
 			Data:    user,
@@ -107,7 +106,6 @@ func CreateSubscribeTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.AppendSubscribePermission(params.Topic) {
-		user.Password = ""
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusOK,
 			Data:    user,
