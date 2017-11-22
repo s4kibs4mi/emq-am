@@ -52,6 +52,140 @@ Note : First user will be registered as Admin and then are as default.
 }
 ```
 
+* #### Append Publish Topic
+
+###### [ POST {{host}}/publish ]
+- Header
+    - user_id: "123123123123"
+    - access_token: "adsfjnajslkJLKDJASLDKN"
+```json
+{
+	"user_id": "5a15b8212315e690dfce5889",
+	"topic": "hello3"
+}
+```
+###### Response
+```json
+{
+    "code": 200,
+    "details": "Publish topic updated",
+    "data": {
+        "id": "5a15b8212315e690dfce5889",
+        "user_name": "s4kibs4mi1",
+        "email": "root1@sakib.ninja",
+        "publish_topics": [
+            "hello3"
+        ],
+        "subscribe_topics": [
+            "hello3"
+        ],
+        "type": "default",
+        "status": "unbanned",
+        "created_at": "2017-11-22T23:47:13.85+06:00",
+        "updated_at": "2017-11-22T23:47:13.85+06:00"
+    }
+}
+```
+
+* #### Remove Publish Topic
+
+###### [ DELETE {{host}}/publish ]
+- Header
+    - user_id: "123123123123"
+    - access_token: "adsfjnajslkJLKDJASLDKN"
+```json
+{
+	"user_id": "5a15b8212315e690dfce5889",
+	"topic": "hello3"
+}
+```
+###### Response
+```json
+{
+    "code": 200,
+    "details": "Publish topic removed",
+    "data": {
+        "id": "5a15b8212315e690dfce5889",
+        "user_name": "s4kibs4mi1",
+        "email": "root1@sakib.ninja",
+        "subscribe_topics": [
+            "hello3"
+        ],
+        "type": "default",
+        "status": "unbanned",
+        "created_at": "2017-11-22T23:47:13.85+06:00",
+        "updated_at": "2017-11-22T23:47:13.85+06:00"
+    }
+}
+```
+
+* #### Append Subscribe Topic
+
+###### [ POST {{host}}/subscribe ]
+- Header
+    - user_id: "123123123123"
+    - access_token: "adsfjnajslkJLKDJASLDKN"
+```json
+{
+	"user_id": "5a15b8212315e690dfce5889",
+	"topic": "hello3"
+}
+```
+###### Response
+```json
+{
+    "code": 200,
+    "details": "Subscribe topic updated",
+    "data": {
+        "id": "5a15b8212315e690dfce5889",
+        "user_name": "s4kibs4mi1",
+        "email": "root1@sakib.ninja",
+        "publish_topics": [
+            "hello3"
+        ],
+        "subscribe_topics": [
+            "hello3"
+        ],
+        "type": "default",
+        "status": "unbanned",
+        "created_at": "2017-11-22T23:47:13.85+06:00",
+        "updated_at": "2017-11-22T23:47:13.85+06:00"
+    }
+}
+```
+
+* #### Remove Subscribe Topic
+
+###### [ DELETE {{host}}/subscribe ]
+- Header
+    - user_id: "123123123123"
+    - access_token: "adsfjnajslkJLKDJASLDKN"
+```json
+{
+	"user_id": "5a15b8212315e690dfce5889",
+	"topic": "hello3"
+}
+```
+###### Response
+```json
+{
+    "code": 200,
+    "details": "Subscribe topic removed",
+    "data": {
+        "id": "5a15b8212315e690dfce5889",
+        "user_name": "s4kibs4mi1",
+        "email": "root1@sakib.ninja",
+        "subscribe_topics": [
+            "hello3"
+        ],
+        "type": "default",
+        "status": "unbanned",
+        "created_at": "2017-11-22T23:47:13.85+06:00",
+        "updated_at": "2017-11-22T23:47:13.85+06:00"
+    }
+}
+```
+
 * #### EMQ Authentication
 
 ###### [ POST {{host}}/auth ]
