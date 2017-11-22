@@ -90,33 +90,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func CheckLogin(w http.ResponseWriter, r *http.Request) {
-	user := &data.User{}
-	parseErr := ParseFromStringBody(r, user)
-	if parseErr != nil {
-		ServeJSON(w, APIResponse{
-			Code:   http.StatusBadRequest,
-			Errors: parseErr,
-		}, http.StatusBadRequest)
-		return
-	}
-	if !user.HasValidCredentials() {
-		ServeJSON(w, APIResponse{
-			Code: http.StatusUnauthorized,
-		}, http.StatusUnauthorized)
-	}
-	if user.Status == data.UserStatusBanned {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusForbidden,
-			Details: "User status banned",
-		}, http.StatusForbidden)
-	}
-	ServeJSON(w, APIResponse{
-		Code: http.StatusOK,
-	}, http.StatusOK)
-	return
-}
-
 func CreateSession(w http.ResponseWriter, r *http.Request) {
 	user := &data.User{}
 	parseErr := ParseResponse(r, user)
