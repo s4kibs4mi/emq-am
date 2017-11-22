@@ -23,7 +23,7 @@ func ServeCmdExecute(command *cobra.Command, args []string) {
 	v1.HandleFunc("/auth", api.CheckLogin).Methods("POST")
 	v1.HandleFunc("/acl", api.HasBroadcastPermission).Methods("POST")
 	v1.HandleFunc("/publish", api.MemberAuth(api.CreatePublishTopic)).Methods("POST")
-	v1.HandleFunc("/publish", api.HasBroadcastPermission).Methods("DELETE")
+	v1.HandleFunc("/publish", api.MemberAuth(api.RemovePublishTopic)).Methods("DELETE")
 	v1.HandleFunc("/subscribe", api.MemberAuth(api.CreateSubscribeTopic)).Methods("POST")
 	v1.HandleFunc("/subscribe", api.HasBroadcastPermission).Methods("DELETE")
 	v1.HandleFunc("/session", api.CreateSession).Methods("POST")

@@ -199,8 +199,19 @@ func (u *User) AppendSubscribePermission(topic string) bool {
 	return err == nil
 }
 
-func (u *User) DiscardPublishPermission(topics string) bool {
-	return false
+func (u *User) DiscardPublishPermission(topic string) bool {
+	var newTopicList []string
+	for _, t := range u.PublishTopics {
+		if t == topic {
+			continue
+		}
+		newTopicList = append(newTopicList, t)
+	}
+	u.PublishTopics = newTopicList
+	err := net.GetUserCollection().Update(bson.M{
+		"id": u.Id,
+	}, u)
+	return err == nil
 }
 
 func (u *User) DiscardSubscribePermission(topics string) bool {
