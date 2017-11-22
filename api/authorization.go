@@ -9,7 +9,7 @@ import (
 func CheckLogin(w http.ResponseWriter, r *http.Request) {
 	user := &data.User{}
 	parseErr := ParseFromStringBody(r, user)
-	if parseErr != nil && bson.IsObjectIdHex(user.UserName) {
+	if parseErr != nil || !bson.IsObjectIdHex(user.UserName) {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
 			Errors: parseErr,
@@ -33,7 +33,7 @@ func CheckLogin(w http.ResponseWriter, r *http.Request) {
 func HasBroadcastPermission(w http.ResponseWriter, r *http.Request) {
 	params := &data.ACLParams{}
 	parseErr := ParseACLParams(r, params)
-	if parseErr != nil {
+	if parseErr != nil || !bson.IsObjectIdHex(params.UserId) {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
 			Errors: parseErr,
@@ -41,13 +41,13 @@ func HasBroadcastPermission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := &data.User{}
-	user.UserName = params.UserName
-	if params.Access == data.MQTopicDirectionPublish && user.HasPublishPermission(params.Topic) {
+	user.Id = bson.ObjectIdHex(params.UserId)
+	if params.Access == data.Publish && user.HasPublishPermission(params.Topic) {
 		ServeJSON(w, APIResponse{
 			Code: http.StatusOK,
 		}, http.StatusOK)
 		return
-	} else if params.Access == data.MQTopicDirectionSubscribe && user.HasSubscribePermission(params.Topic) {
+	} else if params.Access == data.Subscribe && user.HasSubscribePermission(params.Topic) {
 		ServeJSON(w, APIResponse{
 			Code: http.StatusOK,
 		}, http.StatusOK)

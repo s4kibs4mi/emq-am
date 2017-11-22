@@ -52,25 +52,20 @@ Note : First user will be registered as Admin and then are as default.
 }
 ```
 
-* #### User Login
+* #### EMQ Authentication
 
-###### [ POST {{host}}/session ]
-```json
-{
-	"user_name": "s4kibs4mi",
-	"password": "123456789"
-}
+###### [ POST {{host}}/auth ]
+```text
+username=${User_Id}&password=${Access_Token}
 ```
 ###### Response
+- Http Status : 200 if authenticated
+
+* #### EMQ Authorization
+
+###### [ POST {{host}}/acl ]
+```text
+username=${User_Id}&topic=hello&access=2
 ```
-{
-    "code": 200,
-    "data": {
-        "user_id": "5a11edeb2315e67eaef32f9b",
-        "access_token": "502bfb33-94a9-40c0-9ebd-a99bdc6ae308",
-        "refresh_token": "c0906a75-4df1-488c-ab80-fc392e14471c",
-        "created_at": "2017-11-20T02:48:25.977248+06:00",
-        "expire_at": "2017-11-21T02:48:25.977248+06:00"
-    }
-}
-```
+###### Response
+- Http Status : 200 if authenticated

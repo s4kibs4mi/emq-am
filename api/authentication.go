@@ -66,15 +66,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.Count() == 0 {
-		userRequest.Type = data.UserTypeAdmin
+		userRequest.Type = data.Admin
 	} else {
-		userRequest.Type = data.UserTypeDefault
+		userRequest.Type = data.Default
 	}
 	userRequest.Password = utils.MakePassword(userRequest.Password)
 	user.Id = bson.NewObjectId()
 	user.Password = userRequest.Password
 	user.Type = userRequest.Type
-	user.Status = data.UserStatusUnbanned
+	user.Status = data.Unbanned
 	if user.Password == "" || !user.Save() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusInternalServerError,
@@ -91,8 +91,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateSession(w http.ResponseWriter, r *http.Request) {
-	user := &data.User{}
-	parseErr := ParseResponse(r, user)
+	userRequest := &data.UserRequest{}
+	parseErr := ParseResponse(r, userRequest)
 	if parseErr != nil {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
@@ -100,8 +100,9 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	if user.HasValidCredentials() {
-		if user.Status == data.UserStatusBanned {
+	user := data.User{}
+	if user.HasValidCredentials(userRequest) {
+		if user.Status == data.Banned {
 			ServeJSON(w, APIResponse{
 				Code:    http.StatusForbidden,
 				Details: "User status banned",

@@ -8,33 +8,37 @@ import (
 	"github.com/spf13/viper"
 )
 
+type UserType string
+type UserStatus string
+type MQTopicDirection string
+
 const (
-	UserTypeAdmin   = "admin"
-	UserTypeMember  = "member"
-	UserTypeDefault = "default"
+	Admin   UserType = "admin"
+	Member  UserType = "member"
+	Default UserType = "default"
 )
 
 const (
-	UserStatusBanned   = "banned"
-	UserStatusUnbanned = "unbanned"
+	Banned   UserStatus = "banned"
+	Unbanned UserStatus = "unbanned"
 )
 
 const (
-	MQTopicDirectionSubscribe = "1"
-	MQTopicDirectionPublish   = "2"
+	Subscribe MQTopicDirection = "1"
+	Publish   MQTopicDirection = "2"
 )
 
 type ACLParams struct {
-	Access   string
-	UserName string
-	Topic    string `json:"topic"`
+	Access MQTopicDirection
+	UserId string `json:"user_id"`
+	Topic  string `json:"topic"`
 }
 
 type UserRequest struct {
-	UserName string `json:"user_name,omitempty"`
-	Password string `json:"password,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Type     string `json:"type,omitempty"`
+	UserName string   `json:"user_name,omitempty"`
+	Password string   `json:"password,omitempty"`
+	Email    string   `json:"email,omitempty"`
+	Type     UserType `json:"type,omitempty"`
 }
 
 type User struct {
@@ -44,8 +48,8 @@ type User struct {
 	Email           string        `json:"email,omitempty"`
 	PublishTopics   []string      `json:"publish_topics,omitempty"`
 	SubscribeTopics []string      `json:"subscribe_topics,omitempty"`
-	Type            string        `json:"type,omitempty"`
-	Status          string        `json:"status"`
+	Type            UserType      `json:"type,omitempty"`
+	Status          UserStatus    `json:"status"`
 	CreatedAt       time.Time     `json:"created_at"`
 	UpdatedAt       time.Time     `json:"updated_at"`
 }
@@ -57,10 +61,10 @@ func (u *User) Save() bool {
 	if err != nil {
 		return false
 	}
-	return u.Find()
+	return u.FindByUsername()
 }
 
-func (u *User) Find() bool {
+func (u *User) FindByUsername() bool {
 	result := net.GetUserCollection().Find(bson.M{
 		"username": u.UserName,
 	})
@@ -113,8 +117,8 @@ func (u *User) IsUserNameAvailable() bool {
 
 func (u *User) IsAdmin() bool {
 	result := net.GetUserCollection().Find(bson.M{
-		"username": u.UserName,
-		"type":     UserTypeAdmin,
+		"id":   u.Id,
+		"type": Admin,
 	})
 	n, err := result.Count()
 	if err == nil && n == 1 {
@@ -125,8 +129,8 @@ func (u *User) IsAdmin() bool {
 
 func (u *User) IsMember() bool {
 	result := net.GetUserCollection().Find(bson.M{
-		"username": u.UserName,
-		"type":     UserTypeMember,
+		"id":   u.Id,
+		"type": Member,
 	})
 	n, err := result.Count()
 	if err == nil && n == 1 {
@@ -146,15 +150,13 @@ func (u *User) IsEmailAvailable() bool {
 	return false
 }
 
-func (u *User) HasValidCredentials() bool {
-	user := &User{}
+func (u *User) HasValidCredentials(request *UserRequest) bool {
 	result := net.GetUserCollection().Find(bson.M{
-		"username": u.UserName,
+		"username": request.UserName,
 	})
-	err := result.One(user)
+	err := result.One(u)
 	if err == nil {
-		u.Id = user.Id
-		return utils.IsPasswordMatched(u.Password, user.Password)
+		return utils.IsPasswordMatched(request.Password, u.Password)
 	}
 	return false
 }
@@ -164,7 +166,7 @@ func (u *User) HasPublishPermission(topic string) bool {
 		return true
 	}
 	result := net.GetUserCollection().Find(bson.M{
-		"username":      u.UserName,
+		"id":            u.Id,
 		"publishtopics": topic,
 	})
 	n, err := result.Count()
@@ -176,7 +178,7 @@ func (u *User) HasSubscribePermission(topic string) bool {
 		return true
 	}
 	result := net.GetUserCollection().Find(bson.M{
-		"username":        u.UserName,
+		"id":              u.Id,
 		"subscribetopics": topic,
 	})
 	n, err := result.Count()

@@ -64,9 +64,9 @@ func ParseACLParams(r *http.Request, params *data.ACLParams) error {
 	for _, pair := range kv {
 		v := strings.Split(pair, "=")
 		if v[0] == "username" {
-			params.UserName = v[1]
+			params.UserId = v[1]
 		} else if v[0] == "access" {
-			params.Access = v[1]
+			params.Access = data.MQTopicDirection(v[1])
 		} else if v[0] == "topic" {
 			params.Topic = v[1]
 		}

@@ -16,10 +16,9 @@ import (
  */
 
 func CreatePublishTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
 	params := &data.ACLParams{}
 	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
+	if parseErr != nil || params.Topic == "" || !bson.IsObjectIdHex(params.UserId) {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
 			Errors: parseErr,
@@ -27,7 +26,7 @@ func CreatePublishTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
+	user.Id = bson.ObjectIdHex(params.UserId)
 	if !user.FindById() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusNotFound,
@@ -57,10 +56,9 @@ func CreatePublishTopic(w http.ResponseWriter, r *http.Request) {
 }
 
 func RemovePublishTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
 	params := &data.ACLParams{}
 	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
+	if parseErr != nil || params.Topic == "" || !bson.IsObjectIdHex(params.UserId) {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
 			Errors: parseErr,
@@ -68,7 +66,7 @@ func RemovePublishTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
+	user.Id = bson.ObjectIdHex(params.UserId)
 	if !user.FindById() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusNotFound,
@@ -98,10 +96,9 @@ func RemovePublishTopic(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateSubscribeTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
 	params := &data.ACLParams{}
 	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
+	if parseErr != nil || params.Topic == "" || !bson.IsObjectIdHex(params.UserId) {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
 			Errors: parseErr,
@@ -109,7 +106,7 @@ func CreateSubscribeTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
+	user.Id = bson.ObjectIdHex(params.UserId)
 	if !user.FindById() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusNotFound,
@@ -139,10 +136,9 @@ func CreateSubscribeTopic(w http.ResponseWriter, r *http.Request) {
 }
 
 func RemoveSubscribeTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
 	params := &data.ACLParams{}
 	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
+	if parseErr != nil || params.Topic == "" || !bson.IsObjectIdHex(params.UserId) {
 		ServeJSON(w, APIResponse{
 			Code:   http.StatusBadRequest,
 			Errors: parseErr,
@@ -150,7 +146,7 @@ func RemoveSubscribeTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
+	user.Id = bson.ObjectIdHex(params.UserId)
 	if !user.FindById() {
 		ServeJSON(w, APIResponse{
 			Code:    http.StatusNotFound,
@@ -175,7 +171,7 @@ func RemoveSubscribeTopic(w http.ResponseWriter, r *http.Request) {
 	}
 	ServeJSON(w, APIResponse{
 		Code:    http.StatusInternalServerError,
-		Details: "Couldn't update publish topic",
+		Details: "Couldn't update subscribe topic",
 	}, http.StatusInternalServerError)
 }
 
