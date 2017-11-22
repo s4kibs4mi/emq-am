@@ -19,8 +19,8 @@ const (
 )
 
 const (
-	Banned   UserStatus = "banned"
-	Unbanned UserStatus = "unbanned"
+	Allowed UserStatus = "allowed"
+	Blocked UserStatus = "blocked"
 )
 
 const (

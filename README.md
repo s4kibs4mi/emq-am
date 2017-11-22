@@ -203,3 +203,32 @@ username=${User_Id}&topic=hello&access=2
 ```
 ###### Response
 - Http Status : 200 if authenticated
+
+
+### Configuration
+Change configuration in etc/config.json
+
+```json
+{
+  "app": {
+    "address": ":8090"
+  },
+  "databases": {
+    "mongodb": {
+      "uri": "mongodb://localhost:27017",
+      "name": "emqam",
+      "auth_collection": "emqauth",
+      "acl_collection": "emqacl",
+      "session_collection": "sessions"
+    }
+  },
+  "security": {
+    "registration_enabled": true,
+    "key": "hello",
+    "secret": "12345"
+  },
+  "pagination": {
+    "per_page": 20
+  }
+}
+```
