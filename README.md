@@ -232,3 +232,9 @@ Change configuration in etc/config.json
   }
 }
 ```
+
+### Docker Deployment
+```
+docker pull sakibsami/emq-am:latest
+docker run -p 8090:8090 sakibsami/emq-am:latest
+```
