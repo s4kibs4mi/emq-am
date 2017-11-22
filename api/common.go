@@ -39,11 +39,11 @@ func ParseResponse(r *http.Request, v interface{}) error {
 }
 
 func ParseFromStringBody(r *http.Request, u *data.User) error {
-	data, readErr := ioutil.ReadAll(r.Body)
+	value, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
 		return readErr
 	}
-	kv := strings.Split(string(data), "&")
+	kv := strings.Split(string(value), "&")
 	for _, pair := range kv {
 		v := strings.Split(pair, "=")
 		if v[0] == "username" {
@@ -56,11 +56,11 @@ func ParseFromStringBody(r *http.Request, u *data.User) error {
 }
 
 func ParseACLParams(r *http.Request, params *data.ACLParams) error {
-	data, readErr := ioutil.ReadAll(r.Body)
+	value, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
 		return readErr
 	}
-	kv := strings.Split(string(data), "&")
+	kv := strings.Split(string(value), "&")
 	for _, pair := range kv {
 		v := strings.Split(pair, "=")
 		if v[0] == "username" {

@@ -3,9 +3,6 @@ package api
 import (
 	"net/http"
 	"github.com/s4kibs4mi/emq-am/data"
-	"fmt"
-	"gopkg.in/mgo.v2/bson"
-	"github.com/s4kibs4mi/emq-am/utils"
 )
 
 func HasBroadcastPermission(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +15,6 @@ func HasBroadcastPermission(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	fmt.Println(params)
 	user := &data.User{}
 	user.UserName = params.UserName
 	if params.Access == data.MQTopicDirectionPublish && user.HasPublishPermission(params.Topic) {
@@ -35,168 +31,4 @@ func HasBroadcastPermission(w http.ResponseWriter, r *http.Request) {
 	ServeJSON(w, APIResponse{
 		Code: http.StatusUnauthorized,
 	}, http.StatusUnauthorized)
-}
-
-func CreatePublishTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
-	params := &data.ACLParams{}
-	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
-		ServeJSON(w, APIResponse{
-			Code:   http.StatusBadRequest,
-			Errors: parseErr,
-		}, http.StatusBadRequest)
-		return
-	}
-	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
-	if !user.FindById() {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusNotFound,
-			Details: "User not found",
-		}, http.StatusNotFound)
-		return
-	}
-	if utils.IsItemExists(user.PublishTopics, params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusUnprocessableEntity,
-			Details: "Topic already exists",
-		}, http.StatusUnprocessableEntity)
-		return
-	}
-	if user.AppendPublishPermission(params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusOK,
-			Data:    user,
-			Details: "Publish topic updated",
-		}, http.StatusOK)
-		return
-	}
-	ServeJSON(w, APIResponse{
-		Code:    http.StatusInternalServerError,
-		Details: "Couldn't update publish topic",
-	}, http.StatusInternalServerError)
-}
-
-func RemovePublishTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
-	params := &data.ACLParams{}
-	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
-		ServeJSON(w, APIResponse{
-			Code:   http.StatusBadRequest,
-			Errors: parseErr,
-		}, http.StatusBadRequest)
-		return
-	}
-	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
-	if !user.FindById() {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusNotFound,
-			Details: "User not found",
-		}, http.StatusNotFound)
-		return
-	}
-	if !utils.IsItemExists(user.PublishTopics, params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusNotFound,
-			Details: "Topic doesn't exists",
-		}, http.StatusNotFound)
-		return
-	}
-	if user.DiscardPublishPermission(params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusOK,
-			Data:    user,
-			Details: "Publish topic removed",
-		}, http.StatusOK)
-		return
-	}
-	ServeJSON(w, APIResponse{
-		Code:    http.StatusInternalServerError,
-		Details: "Couldn't update publish topic",
-	}, http.StatusInternalServerError)
-}
-
-func RemoveSubscribeTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
-	params := &data.ACLParams{}
-	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
-		ServeJSON(w, APIResponse{
-			Code:   http.StatusBadRequest,
-			Errors: parseErr,
-		}, http.StatusBadRequest)
-		return
-	}
-	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
-	if !user.FindById() {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusNotFound,
-			Details: "User not found",
-		}, http.StatusNotFound)
-		return
-	}
-	if !utils.IsItemExists(user.SubscribeTopics, params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusNotFound,
-			Details: "Topic doesn't exists",
-		}, http.StatusNotFound)
-		return
-	}
-	if user.DiscardSubscribePermission(params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusOK,
-			Data:    user,
-			Details: "Subscribe topic removed",
-		}, http.StatusOK)
-		return
-	}
-	ServeJSON(w, APIResponse{
-		Code:    http.StatusInternalServerError,
-		Details: "Couldn't update publish topic",
-	}, http.StatusInternalServerError)
-}
-
-func CreateSubscribeTopic(w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get(UserId)
-	params := &data.ACLParams{}
-	parseErr := ParseResponse(r, params)
-	if parseErr != nil || params.Topic == "" {
-		ServeJSON(w, APIResponse{
-			Code:   http.StatusBadRequest,
-			Errors: parseErr,
-		}, http.StatusBadRequest)
-		return
-	}
-	user := data.User{}
-	user.Id = bson.ObjectIdHex(userId)
-	if !user.FindById() {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusNotFound,
-			Details: "User not found",
-		}, http.StatusNotFound)
-		return
-	}
-	if utils.IsItemExists(user.SubscribeTopics, params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusUnprocessableEntity,
-			Details: "Topic already exists",
-		}, http.StatusUnprocessableEntity)
-		return
-	}
-	if user.AppendSubscribePermission(params.Topic) {
-		ServeJSON(w, APIResponse{
-			Code:    http.StatusOK,
-			Data:    user,
-			Details: "Subscribe topic updated",
-		}, http.StatusOK)
-		return
-	}
-	ServeJSON(w, APIResponse{
-		Code:    http.StatusInternalServerError,
-		Details: "Couldn't update subscribe topic",
-	}, http.StatusInternalServerError)
 }
