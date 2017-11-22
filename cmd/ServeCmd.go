@@ -25,7 +25,7 @@ func ServeCmdExecute(command *cobra.Command, args []string) {
 	v1.HandleFunc("/publish", api.MemberAuth(api.CreatePublishTopic)).Methods("POST")
 	v1.HandleFunc("/publish", api.MemberAuth(api.RemovePublishTopic)).Methods("DELETE")
 	v1.HandleFunc("/subscribe", api.MemberAuth(api.CreateSubscribeTopic)).Methods("POST")
-	v1.HandleFunc("/subscribe", api.HasBroadcastPermission).Methods("DELETE")
+	v1.HandleFunc("/subscribe", api.MemberAuth(api.RemoveSubscribeTopic)).Methods("DELETE")
 	v1.HandleFunc("/session", api.CreateSession).Methods("POST")
 
 	fmt.Printf("Running on [%s]!\n", viper.GetString("app.address"))
